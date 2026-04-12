@@ -53,6 +53,10 @@ interface FinanceDao { // 👩‍💼 Сотрудник склада данны
     suspend fun updateTransaction(transaction: TransactionEntity)
     // 🧠 Обновить конкретную операцию
 
+    @Delete
+    suspend fun deleteTransaction(transaction: TransactionEntity)
+    // 🧠 Удалить одну конкретную операцию
+
     @Query("SELECT * FROM transactions WHERE cardId = :cardId ORDER BY date DESC")
     suspend fun getTransactionsByCardId(cardId: Long): List<TransactionEntity>
     // 🧠 Получить операции по конкретной карте

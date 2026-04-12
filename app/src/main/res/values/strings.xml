@@ -25,6 +25,7 @@
     <string name="year_label">Год</string>
     <string name="save_card">Сохранить карту</string>
     <string name="edit_card">Изменить карту</string>
+    <string name="delete_card">Удалить карту</string>
     <string name="edit_card_title">Редактирование карты</string>
     <string name="save_changes">Сохранить изменения</string>
     <string name="card_details_title">Детали карты</string>
@@ -39,6 +40,7 @@
     <string name="transaction_comment">Комментарий: %1$s</string>
     <string name="new_transaction_title">Новая операция</string>
     <string name="edit_transaction">Изменить операцию</string>
+    <string name="delete_transaction">Удалить операцию</string>
     <string name="edit_transaction_title">Редактирование операции</string>
     <string name="expense_selected">Расход ✓</string>
     <string name="payment_selected">Погашение ✓</string>
@@ -51,9 +53,11 @@
     <string name="message_invalid_card_input">Заполни все поля корректно</string>
     <string name="message_card_added">Карта добавлена</string>
     <string name="message_card_updated">Карта обновлена</string>
-    <string name="message_card_save_failed">Не удалось сохранить карту</string>
+    <string name="message_card_deleted">Карта удалена</string>
+    <string name="message_card_save_failed">Не удалось изменить данные карты</string>
     <string name="message_invalid_transaction_input">Проверь сумму и дату операции</string>
     <string name="message_transaction_added">Операция добавлена</string>
     <string name="message_transaction_updated">Операция обновлена</string>
-    <string name="message_transaction_save_failed">Не удалось добавить операцию</string>
+    <string name="message_transaction_deleted">Операция удалена</string>
+    <string name="message_transaction_save_failed">Не удалось изменить операцию</string>
 </resources>

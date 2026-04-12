@@ -8,6 +8,8 @@ import com.chernolove.finote.data.repository.FinanceRepositoryImpl
 import com.chernolove.finote.domain.repository.FinanceRepository
 import com.chernolove.finote.domain.usecase.AddCardUseCase
 import com.chernolove.finote.domain.usecase.AddTransactionUseCase
+import com.chernolove.finote.domain.usecase.DeleteCardUseCase
+import com.chernolove.finote.domain.usecase.DeleteTransactionUseCase
 import com.chernolove.finote.domain.usecase.GetCardsUseCase
 import com.chernolove.finote.domain.usecase.GetTransactionsByCardUseCase
 import com.chernolove.finote.domain.usecase.UpdateCardUseCase
@@ -48,19 +50,23 @@ val finoteModule = module {
     // чтобы слои приложения были слабо связаны между собой.
     factory { AddCardUseCase(get()) }
     factory { UpdateCardUseCase(get()) }
+    factory { DeleteCardUseCase(get()) }
     factory { GetCardsUseCase(get()) }
     factory { AddTransactionUseCase(get()) }
     factory { GetTransactionsByCardUseCase(get()) }
     factory { UpdateTransactionUseCase(get()) }
+    factory { DeleteTransactionUseCase(get()) }
 
     viewModel {
         FinoteViewModel(
             addCardUseCase = get(),
             updateCardUseCase = get(),
+            deleteCardUseCase = get(),
             getCardsUseCase = get(),
             addTransactionUseCase = get(),
             getTransactionsByCardUseCase = get(),
             updateTransactionUseCase = get(),
+            deleteTransactionUseCase = get(),
             currencyRepository = get()
         )
     }

@@ -9,6 +9,8 @@ import com.chernolove.finote.domain.model.Transaction
 import com.chernolove.finote.domain.model.TransactionType
 import com.chernolove.finote.domain.usecase.AddCardUseCase
 import com.chernolove.finote.domain.usecase.AddTransactionUseCase
+import com.chernolove.finote.domain.usecase.DeleteCardUseCase
+import com.chernolove.finote.domain.usecase.DeleteTransactionUseCase
 import com.chernolove.finote.domain.usecase.GetCardsUseCase
 import com.chernolove.finote.domain.usecase.GetTransactionsByCardUseCase
 import com.chernolove.finote.domain.usecase.UpdateCardUseCase
@@ -41,20 +43,24 @@ enum class FinoteMessage {
     INVALID_CARD_INPUT,
     CARD_ADDED,
     CARD_UPDATED,
+    CARD_DELETED,
     CARD_SAVE_FAILED,
     INVALID_TRANSACTION_INPUT,
     TRANSACTION_ADDED,
     TRANSACTION_UPDATED,
+    TRANSACTION_DELETED,
     TRANSACTION_SAVE_FAILED
 }
 
 class FinoteViewModel(
     private val addCardUseCase: AddCardUseCase,
     private val updateCardUseCase: UpdateCardUseCase,
+    private val deleteCardUseCase: DeleteCardUseCase,
     private val getCardsUseCase: GetCardsUseCase,
     private val addTransactionUseCase: AddTransactionUseCase,
     private val getTransactionsByCardUseCase: GetTransactionsByCardUseCase,
     private val updateTransactionUseCase: UpdateTransactionUseCase,
+    private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val currencyRepository: CurrencyRepository
 ) : ViewModel() {
 
@@ -233,6 +239,45 @@ class FinoteViewModel(
                     }
                 )
                 onSuccess()
+            }.onFailure {
+                _uiState.value = _uiState.value.copy(
+                    message = FinoteMessage.TRANSACTION_SAVE_FAILED
+                )
+            }
+        }
+    }
+
+    fun deleteCard(cardId: Long, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            runCatching {
+                deleteCardUseCase.execute(cardId)
+            }.onSuccess {
+                _uiState.value = _uiState.value.copy(
+                    selectedCard = null,
+                    selectedTransaction = null,
+                    transactions = emptyList(),
+                    message = FinoteMessage.CARD_DELETED
+                )
+                loadCards()
+                onSuccess()
+            }.onFailure {
+                _uiState.value = _uiState.value.copy(
+                    message = FinoteMessage.CARD_SAVE_FAILED
+                )
+            }
+        }
+    }
+
+    fun deleteTransaction(cardId: Long, transactionId: Long) {
+        viewModelScope.launch {
+            runCatching {
+                deleteTransactionUseCase.execute(transactionId)
+            }.onSuccess {
+                loadCardDetails(cardId)
+                _uiState.value = _uiState.value.copy(
+                    selectedTransaction = null,
+                    message = FinoteMessage.TRANSACTION_DELETED
+                )
             }.onFailure {
                 _uiState.value = _uiState.value.copy(
                     message = FinoteMessage.TRANSACTION_SAVE_FAILED

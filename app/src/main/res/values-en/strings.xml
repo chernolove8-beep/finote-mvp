@@ -25,6 +25,7 @@
     <string name="year_label">Year</string>
     <string name="save_card">Save card</string>
     <string name="edit_card">Edit card</string>
+    <string name="delete_card">Delete card</string>
     <string name="edit_card_title">Edit card</string>
     <string name="save_changes">Save changes</string>
     <string name="card_details_title">Card details</string>
@@ -39,6 +40,7 @@
     <string name="transaction_comment">Comment: %1$s</string>
     <string name="new_transaction_title">New transaction</string>
     <string name="edit_transaction">Edit transaction</string>
+    <string name="delete_transaction">Delete transaction</string>
     <string name="edit_transaction_title">Edit transaction</string>
     <string name="expense_selected">Expense ✓</string>
     <string name="payment_selected">Payment ✓</string>
@@ -51,9 +53,11 @@
     <string name="message_invalid_card_input">Please fill in all fields correctly</string>
     <string name="message_card_added">Card added</string>
     <string name="message_card_updated">Card updated</string>
-    <string name="message_card_save_failed">Failed to save card</string>
+    <string name="message_card_deleted">Card deleted</string>
+    <string name="message_card_save_failed">Failed to update card data</string>
     <string name="message_invalid_transaction_input">Check the amount and transaction date</string>
     <string name="message_transaction_added">Transaction added</string>
     <string name="message_transaction_updated">Transaction updated</string>
-    <string name="message_transaction_save_failed">Failed to add transaction</string>
+    <string name="message_transaction_deleted">Transaction deleted</string>
+    <string name="message_transaction_save_failed">Failed to update transaction</string>
 </resources>

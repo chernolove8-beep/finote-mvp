@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,11 +39,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -158,10 +161,18 @@ fun FinoteApp(viewModel: FinoteViewModel) {
                 state = state,
                 onBack = { navController.popBackStack() },
                 onEditCard = { navController.navigate("$EDIT_CARD_ROUTE/$cardId") },
+                onDeleteCard = {
+                    viewModel.deleteCard(cardId) {
+                        navController.popBackStack()
+                    }
+                },
                 onAddTransaction = { navController.navigate("$ADD_TRANSACTION_ROUTE/$cardId") },
                 onEditTransaction = { transactionId ->
                     viewModel.selectTransaction(transactionId)
                     navController.navigate("$EDIT_TRANSACTION_ROUTE/$cardId/$transactionId")
+                },
+                onDeleteTransaction = { transactionId ->
+                    viewModel.deleteTransaction(cardId = cardId, transactionId = transactionId)
                 }
             )
         }
@@ -248,16 +259,45 @@ private fun HomeScreen(
                 // Верхняя панель с названием приложения и слоганом.
                 TopAppBar(
                     title = {
-                        Column {
-                            Text(
-                                text = stringResource(R.string.app_name),
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = stringResource(R.string.app_tagline),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .background(
+                                        brush = Brush.verticalGradient(
+                                            listOf(
+                                                MaterialTheme.colorScheme.secondary.copy(alpha = 0.95f),
+                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.92f)
+                                            )
+                                        ),
+                                        shape = RoundedCornerShape(14.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "₽",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
+
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.app_name),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                                Text(
+                                    text = stringResource(R.string.app_tagline),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -355,40 +395,85 @@ private fun FinoteScreenBackground(
 @Composable
 private fun MoneyPatternOverlay() {
     // Декоративный паттерн со знаками рубля.
+    // Верх оставляем спокойным, а низ делаем заметнее, как фирменную "денежную" подложку.
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 20.dp),
-        verticalArrangement = Arrangement.SpaceEvenly
+            .padding(horizontal = 20.dp, vertical = 18.dp),
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        repeat(5) { rowIndex ->
+        Column(
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+            repeat(3) { rowIndex ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = when (rowIndex % 3) {
+                        0 -> Arrangement.SpaceBetween
+                        1 -> Arrangement.SpaceAround
+                        else -> Arrangement.SpaceEvenly
+                    }
+                ) {
+                    repeat(3) { columnIndex ->
+                        val isAccent = (rowIndex + columnIndex) % 2 == 0
+                        val useGoldAccent = (rowIndex * 3 + columnIndex) % 4 == 0
+                        Text(
+                            text = "₽",
+                            modifier = Modifier.rotate(if (isAccent) -12f else 10f),
+                            style = if (isAccent) {
+                                MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Black)
+                            } else {
+                                MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold)
+                            },
+                            color = if (useGoldAccent) {
+                                MaterialTheme.colorScheme.secondary.copy(
+                                    alpha = if (isAccent) 0.18f else 0.12f
+                                )
+                            } else {
+                                MaterialTheme.colorScheme.primary.copy(
+                                    alpha = if (isAccent) 0.10f else 0.06f
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = when (rowIndex % 3) {
-                    0 -> Arrangement.SpaceBetween
-                    1 -> Arrangement.SpaceAround
-                    else -> Arrangement.SpaceEvenly
-                }
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                repeat(3) { columnIndex ->
-                    val isAccent = (rowIndex + columnIndex) % 2 == 0
-                    val useGoldAccent = (rowIndex * 3 + columnIndex) % 4 == 0
+                repeat(4) { index ->
                     Text(
                         text = "₽",
-                        modifier = Modifier.rotate(if (isAccent) -12f else 10f),
-                        style = if (isAccent) {
-                            MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Black)
+                        modifier = Modifier.rotate(if (index % 2 == 0) -10f else 12f),
+                        style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Black),
+                        color = if (index % 2 == 0) {
+                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.22f)
                         } else {
-                            MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold)
-                        },
-                        color = if (useGoldAccent) {
-                            MaterialTheme.colorScheme.secondary.copy(
-                                alpha = if (isAccent) 0.12f else 0.08f
-                            )
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                        }
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                repeat(3) { index ->
+                    Text(
+                        text = "₽",
+                        modifier = Modifier.rotate(if (index == 1) 8f else -8f),
+                        style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.ExtraBold),
+                        color = if (index == 1) {
+                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.26f)
                         } else {
-                            MaterialTheme.colorScheme.primary.copy(
-                                alpha = if (isAccent) 0.07f else 0.04f
-                            )
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
                         }
                     )
                 }
@@ -520,6 +605,7 @@ private fun AddCardScreen(
                     onValueChange = { name = it },
                     label = { Text(stringResource(R.string.card_name_label)) },
                     modifier = Modifier.fillMaxWidth(),
+                    textStyle = finoteInputTextStyle(),
                     shape = RoundedCornerShape(18.dp),
                     colors = finoteTextFieldColors()
                 )
@@ -528,6 +614,7 @@ private fun AddCardScreen(
                     onValueChange = { limit = it.filter { ch -> ch.isDigit() || ch == '.' } },
                     label = { Text(stringResource(R.string.credit_limit_label)) },
                     modifier = Modifier.fillMaxWidth(),
+                    textStyle = finoteInputTextStyle(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     shape = RoundedCornerShape(18.dp),
                     colors = finoteTextFieldColors()
@@ -537,6 +624,7 @@ private fun AddCardScreen(
                     onValueChange = { debt = it.filter { ch -> ch.isDigit() || ch == '.' } },
                     label = { Text(stringResource(R.string.current_debt_label)) },
                     modifier = Modifier.fillMaxWidth(),
+                    textStyle = finoteInputTextStyle(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     shape = RoundedCornerShape(18.dp),
                     colors = finoteTextFieldColors()
@@ -571,8 +659,10 @@ private fun CardDetailsScreen(
     state: FinoteUiState,
     onBack: () -> Unit,
     onEditCard: () -> Unit,
+    onDeleteCard: () -> Unit,
     onAddTransaction: () -> Unit,
-    onEditTransaction: (Long) -> Unit
+    onEditTransaction: (Long) -> Unit,
+    onDeleteTransaction: (Long) -> Unit
 ) {
     val card = state.selectedCard
 
@@ -646,6 +736,18 @@ private fun CardDetailsScreen(
                     }
                 }
 
+                Button(
+                    onClick = onDeleteCard,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    )
+                ) {
+                    Text(stringResource(R.string.delete_card))
+                }
+
                 Text(stringResource(R.string.transactions_title), style = MaterialTheme.typography.titleMedium)
 
                 if (state.transactions.isEmpty()) {
@@ -655,7 +757,8 @@ private fun CardDetailsScreen(
                         items(state.transactions, key = { it.id }) { transaction ->
                             TransactionItem(
                                 transaction = transaction,
-                                onEdit = { onEditTransaction(transaction.id) }
+                                onEdit = { onEditTransaction(transaction.id) },
+                                onDelete = { onDeleteTransaction(transaction.id) }
                             )
                         }
                     }
@@ -668,7 +771,8 @@ private fun CardDetailsScreen(
 @Composable
 private fun TransactionItem(
     transaction: Transaction,
-    onEdit: () -> Unit
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
 ) {
     // Отдельная карточка одной операции.
     Card(
@@ -692,8 +796,16 @@ private fun TransactionItem(
             Text(stringResource(R.string.transaction_date, transaction.date.toInputDate()))
             Text(stringResource(R.string.transaction_comment, transaction.comment ?: "—"))
             Spacer(modifier = Modifier.height(8.dp))
-            TextButton(onClick = onEdit) {
-                Text(stringResource(R.string.edit_transaction))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = onEdit) {
+                    Text(stringResource(R.string.edit_transaction))
+                }
+                TextButton(onClick = onDelete) {
+                    Text(
+                        text = stringResource(R.string.delete_transaction),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
         }
     }
@@ -777,6 +889,7 @@ private fun AddTransactionScreen(
                     onValueChange = { amount = it.filter { ch -> ch.isDigit() || ch == '.' } },
                     label = { Text(stringResource(R.string.amount_label)) },
                     modifier = Modifier.fillMaxWidth(),
+                    textStyle = finoteInputTextStyle(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     shape = RoundedCornerShape(18.dp),
                     colors = finoteTextFieldColors()
@@ -798,6 +911,7 @@ private fun AddTransactionScreen(
                     onValueChange = { comment = it },
                     label = { Text(stringResource(R.string.comment_label)) },
                     modifier = Modifier.fillMaxWidth(),
+                    textStyle = finoteInputTextStyle(),
                     shape = RoundedCornerShape(18.dp),
                     colors = finoteTextFieldColors()
                 )
@@ -840,6 +954,7 @@ private fun DatePartsInput(
             onValueChange = { onDayChange(it.filter(Char::isDigit).take(2)) },
             label = { Text(stringResource(R.string.day_label)) },
             modifier = Modifier.weight(1f),
+            textStyle = finoteInputTextStyle(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
             shape = RoundedCornerShape(18.dp),
@@ -850,6 +965,7 @@ private fun DatePartsInput(
             onValueChange = { onMonthChange(it.filter(Char::isDigit).take(2)) },
             label = { Text(stringResource(R.string.month_label)) },
             modifier = Modifier.weight(1f),
+            textStyle = finoteInputTextStyle(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
             shape = RoundedCornerShape(18.dp),
@@ -860,6 +976,7 @@ private fun DatePartsInput(
             onValueChange = { onYearChange(it.filter(Char::isDigit).take(4)) },
             label = { Text(stringResource(R.string.year_label)) },
             modifier = Modifier.weight(1.3f),
+            textStyle = finoteInputTextStyle(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
             shape = RoundedCornerShape(18.dp),
@@ -872,11 +989,24 @@ private fun DatePartsInput(
 private fun finoteTextFieldColors() = OutlinedTextFieldDefaults.colors(
     // Единые цвета для всех полей ввода.
     focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
     focusedLabelColor = MaterialTheme.colorScheme.primary,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
     focusedTextColor = MaterialTheme.colorScheme.onSurface,
     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    focusedContainerColor = MaterialTheme.colorScheme.surface,
+    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+    disabledContainerColor = MaterialTheme.colorScheme.surface,
+    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
     cursorColor = MaterialTheme.colorScheme.primary
 )
+
+@Composable
+private fun finoteInputTextStyle(): TextStyle =
+    MaterialTheme.typography.bodyLarge.copy(
+        color = MaterialTheme.colorScheme.onSurface
+    )
 
 @Composable
 private fun FinoteMessage.asText(): String = when (this) {
@@ -886,10 +1016,12 @@ private fun FinoteMessage.asText(): String = when (this) {
     FinoteMessage.INVALID_CARD_INPUT -> stringResource(R.string.message_invalid_card_input)
     FinoteMessage.CARD_ADDED -> stringResource(R.string.message_card_added)
     FinoteMessage.CARD_UPDATED -> stringResource(R.string.message_card_updated)
+    FinoteMessage.CARD_DELETED -> stringResource(R.string.message_card_deleted)
     FinoteMessage.CARD_SAVE_FAILED -> stringResource(R.string.message_card_save_failed)
     FinoteMessage.INVALID_TRANSACTION_INPUT -> stringResource(R.string.message_invalid_transaction_input)
     FinoteMessage.TRANSACTION_ADDED -> stringResource(R.string.message_transaction_added)
     FinoteMessage.TRANSACTION_UPDATED -> stringResource(R.string.message_transaction_updated)
+    FinoteMessage.TRANSACTION_DELETED -> stringResource(R.string.message_transaction_deleted)
     FinoteMessage.TRANSACTION_SAVE_FAILED -> stringResource(R.string.message_transaction_save_failed)
 }
 

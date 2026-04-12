@@ -19,6 +19,13 @@ class FinanceRepositoryImpl(private val financeDao: FinanceDao) : FinanceReposit
         financeDao.updateCreditCard(card.toEntity())
     }
 
+    override suspend fun deleteCard(cardId: Long) {
+        val currentCard = financeDao.getCardById(cardId)
+            ?: throw IllegalArgumentException("Card not found")
+
+        financeDao.deleteCreditCard(currentCard)
+    }
+
     override suspend fun getCards(): List<CreditCard> {
         return financeDao.getAllCards().map { it.toDomain() }
     }
@@ -60,6 +67,26 @@ class FinanceRepositoryImpl(private val financeDao: FinanceDao) : FinanceReposit
         require(newDebt <= currentCard.creditLimit) { "Debt cannot exceed credit limit" }
 
         financeDao.updateTransaction(transaction.toEntity())
+        financeDao.updateCreditCard(currentCard.copy(currentDebt = newDebt))
+    }
+
+    override suspend fun deleteTransaction(transactionId: Long) {
+        val transaction = financeDao.getTransactionById(transactionId)
+            ?: throw IllegalArgumentException("Transaction not found")
+        val currentCard = financeDao.getCardById(transaction.cardId)
+            ?: throw IllegalArgumentException("Card not found")
+
+        val debtDelta = when (TransactionType.valueOf(transaction.type)) {
+            TransactionType.EXPENSE -> -transaction.amount
+            TransactionType.PAYMENT -> transaction.amount
+        }
+
+        val newDebt = currentCard.currentDebt + debtDelta
+
+        require(newDebt >= 0) { "Debt cannot be negative" }
+        require(newDebt <= currentCard.creditLimit) { "Debt cannot exceed credit limit" }
+
+        financeDao.deleteTransaction(transaction)
         financeDao.updateCreditCard(currentCard.copy(currentDebt = newDebt))
     }
 
