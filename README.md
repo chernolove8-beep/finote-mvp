@@ -46,6 +46,33 @@
 
 ---
 
+## Скриншоты
+
+<table>
+  <tr>
+    <td align="center">
+      <strong>Главный экран</strong><br>
+      <img src="./screenshots/home.jpg" alt="Finote Home Screen" width="260">
+    </td>
+    <td align="center">
+      <strong>Детали карты</strong><br>
+      <img src="./screenshots/card-details.jpg" alt="Finote Card Details Screen" width="260">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <strong>Редактирование операции</strong><br>
+      <img src="./screenshots/edit-transaction.jpg" alt="Finote Edit Transaction Screen" width="260">
+    </td>
+    <td align="center">
+      <strong>Редактирование карты</strong><br>
+      <img src="./screenshots/edit-card.jpg" alt="Finote Edit Card Screen" width="260">
+    </td>
+  </tr>
+</table>
+
+---
+
 ## Технологии
 
 - `Kotlin`
